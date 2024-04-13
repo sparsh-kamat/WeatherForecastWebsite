@@ -12,7 +12,7 @@ async function getCurrentWeather(location = "auto:ip") {
 }
 
 async function getForecastWeather(location = "auto:ip") {
-    const response = await fetch(`${baseURL}${forecastWeather}?key=${apikey}&q=${location}&days=3`);
+    const response = await fetch(`${baseURL}${forecastWeather}?key=${apikey}&q=${location}&days=4`);
     const data = await response.json();
     return data;
 }
