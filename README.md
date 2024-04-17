@@ -2,12 +2,19 @@
 
 This is a simple weather application built with JavaScript, HTML, and CSS. It allows users to search for weather information for a specific location and view the current weather as well as the forecast for the next three days.
 
+## Live at:
+[https://weather-guruji.netlify.app/](https://weather-guruji.netlify.app/)
+
+
 ## Features
 
 - Search for weather information by location
 - View current weather details including temperature, condition, humidity, and wind speed
 - View forecast weather for the next three days including maximum and minimum temperatures, condition, humidity, and wind speed
 
+## Screenshots
+![Screenshot 1](screenshots/s1.png)
+![Screenshot 2](screenshots/s2.png)
 
 ## Installation
 
