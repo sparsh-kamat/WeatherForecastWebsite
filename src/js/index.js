@@ -1,46 +1,47 @@
 import '../scss/main.scss';
-import  { getCurrentWeather, getForecastWeather, searchLocation } from './api.js';
+import { getCurrentWeather, getForecastWeather, searchLocation } from './api.js';
+import { createElementWithClass } from './domhelper.js';
 
-//DOM 
-//DOM Helper functions
-function createElementWithClass(elementType, className) {
-    var element = document.createElement(elementType);
-  
-    if (Array.isArray(className)) {
-        className.forEach(function (name) {
-            element.classList.add(name);
-        });
-    } else {
-        element.classList.add(className);
-    }
-  
-    return element;
-  }
-  
-  function createElementWithText(elementType, className, text) {
-    var element = createElementWithClass(elementType, className);
-    element.textContent = text;
-    return element;
-  }
-  
-  function setAttributes(element, attributes) {
-    for (var key in attributes) {
-        element.setAttribute(key, attributes[key]);
-    }
-  }
-  
-  export { setAttributes, createElementWithClass, createElementWithText };
-  
+
 
 //get location from input
 const searchButton = document.querySelector('.search-button');
 const searchInput = document.querySelector('.search-input');
 const current = document.querySelector('.current');
-const cardcontainer = document. querySelector('.card-container');
+const cardcontainer = document.querySelector('.card-container');
+const toggle = document.querySelector('.toggle');
+let tempunit = "c";
+let location = 'auto:ip';
+
+toggle.addEventListener('click', (e) => {
+    if (tempunit === "c") {
+        tempunit = "f";
+    } else {
+        tempunit = "c";
+    }
+
+    getCurrentWeather(location).then(data => {
+        current.innerHTML = '';
+        current.appendChild(createCurrentCard(data));
+    }
+    );
+
+    getForecastWeather(location).then(data => {
+        cardcontainer.innerHTML = '';
+        for (let i = 1; i < 4; i++) {
+            cardcontainer.appendChild(createforecastcards(data)[i - 1]);
+        }
+    }
+    );
+
+}
+);
 
 searchButton.addEventListener('click', (e) => {
     e.preventDefault();
+    location = searchInput.value;
     const query = searchInput.value;
+
     getCurrentWeather(query).then(data => {
         console.log(data);
         current.innerHTML = '';
@@ -50,9 +51,9 @@ searchButton.addEventListener('click', (e) => {
     getForecastWeather(query).then(data => {
         cardcontainer.innerHTML = '';
         for (let i = 1; i < 4; i++) {
-            cardcontainer.appendChild(createforecastcards(data)[i-1]);
+            cardcontainer.appendChild(createforecastcards(data)[i - 1]);
         }
-        
+
         console.log(data);
     }
     );
@@ -66,111 +67,122 @@ function createCurrentCard(data) {
     const card = createElementWithClass('div', 'card');
     const cardBody = createElementWithClass('div', 'card-body');
     const cardTitle = createElementWithClass('h5', 'card-title');
-    cardTitle.textContent = data.location.name + ', ' + data.location.country;
     const cardText = createElementWithClass('p', 'card-text');
-    cardText.textContent = data.current.condition.text;
-    // image 
     const imgwithcondition = createElementWithClass('div', 'imgwithcondition');
-
     const img = createElementWithClass('img', 'card-img-top');
-    img.src = data.current.condition.icon;
-    img.alt = data.current.condition.text;
-    
     const cardTemp = createElementWithClass('p', 'card-text');
-    cardTemp.textContent = Math.round(data.current.temp_c) + '°c';
-    //give it an id 
-    cardTemp.id = 'temp';
-
-    // getday and time
-    
+    const corf = createElementWithClass('p', 'temp-type');
     const date = new Date();
     const dayofweek = createElementWithClass('p', 'day');
     const day = date.getDay();
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
     const time = createElementWithClass('p', 'time');
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    dayofweek.textContent = days[day]+ ', ' + hours + ':' + minutes + ' '+ (hours >= 12 ? 'PM' : 'AM');
-    
-
-    
     const cardHumidity = createElementWithClass('p', 'card-text');
-    cardHumidity.textContent = 'Humidity: ' + data.current.humidity + '%';
     const cardWind = createElementWithClass('p', 'card-text');
-    cardWind.textContent = 'Wind: ' + data.current.wind_kph + ' mph';
-
     const belowtitle = createElementWithClass('div', 'belowtitle');
     const textandimg = createElementWithClass('div', 'textandimg');
     const text = createElementWithClass('div', 'text');
 
-    text.appendChild(cardText);
 
+    cardTitle.textContent = data.location.name + ', ' + data.location.country;
+    cardText.textContent = data.current.condition.text;
+
+    img.src = data.current.condition.icon;
+    img.alt = data.current.condition.text;
+
+
+    if (tempunit === "c") {
+        cardTemp.textContent = Math.round(data.current.temp_c);
+        corf.textContent = '°c';
+    }
+    else {
+        cardTemp.textContent = Math.round(data.current.temp_f);
+        corf.textContent = '°f';
+    }
+
+    cardTemp.appendChild(corf);
+    cardTemp.id = 'temp';
+    dayofweek.textContent = days[day] + ', ' + hours + ':' + minutes;
+    cardHumidity.textContent = 'Humidity: ' + data.current.humidity + '%';
+    cardWind.textContent = 'Wind: ' + data.current.wind_kph + ' mph';
+    text.appendChild(cardText);
     imgwithcondition.appendChild(img);
     imgwithcondition.appendChild(text);
-   textandimg.appendChild(cardTemp);
+    textandimg.appendChild(cardTemp);
     textandimg.appendChild(imgwithcondition);
-
-    belowtitle.appendChild(textandimg);
-
     cardBody.appendChild(cardTitle);
-    cardBody.appendChild(belowtitle);
+    cardBody.appendChild(belowtitle); 
+    belowtitle.appendChild(textandimg);
     belowtitle.appendChild(dayofweek);
-
     belowtitle.appendChild(cardHumidity);
     belowtitle.appendChild(cardWind);
-
-    
     card.appendChild(cardBody);
     return card;
 }
 
 
-function createforecastcards(data){
-    // create card array for 3 days
+function createforecastcards(data) {
     const cards = [];
     for (let i = 1; i < 4; i++) {
         const card = createElementWithClass('div', 'card');
         const cardBody = createElementWithClass('div', 'card-body');
         const cardTitle = createElementWithClass('h5', 'card-title');
-        cardTitle.textContent = data.forecast.forecastday[i].date;
+        const date = new Date();
+        const day = date.getDay();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const cardText = createElementWithClass('p', 'card-text');
-        cardText.textContent = data.forecast.forecastday[i].day.condition.text;
-        // image
+        const imgwithcondition = createElementWithClass('div', 'imgwithcondition');
         const img = createElementWithClass('img', 'card-img-top');
+        const cardTemp = createElementWithClass('p', 'card-text');
+        const corf = createElementWithClass('p', 'temp-type');
+        cardTemp.id = 'temp';
+        const maxtemp = createElementWithClass('p', 'card-text');
+        const mintemp = createElementWithClass('p', 'card-text');
+        const cardHumidity = createElementWithClass('p', 'card-text');
+        const cardWind = createElementWithClass('p', 'card-text');
+        const belowtitle = createElementWithClass('div', 'belowtitle');
+        const textandimg = createElementWithClass('div', 'textandimg');
+        const text = createElementWithClass('div', 'text');
+
+
+        cardTitle.textContent = days[(day + i) % 7];
+        cardText.textContent = data.forecast.forecastday[i].day.condition.text;
         img.src = data.forecast.forecastday[i].day.condition.icon;
         img.alt = data.forecast.forecastday[i].day.condition.text;
-        const cardTemp = createElementWithClass('p', 'card-text');
-        //get it for celcius as well
-        let temp_f = data.forecast.forecastday[i].day.maxtemp_f;
-        let temp_c = data.forecast.forecastday[i].day.maxtemp_c;
-
-        //round it to 0 decimal
-        temp_f = Math.round(temp_f);
-        temp_c = Math.round(temp_c);
-        cardTemp.textContent = 'High: ' + temp_c + '°C';
-        const cardLow = createElementWithClass('p', 'card-text');
-        cardLow.textContent = 'Low: ' + data.forecast.forecastday[i].day.mintemp_f + '°F';
-        const cardHumidity = createElementWithClass('p', 'card-text');
+        if (tempunit === "c") {
+            cardTemp.textContent = Math.round(data.forecast.forecastday[i].day.avgtemp_c);
+            corf.textContent = '°c';
+            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i].day.maxtemp_c + '°c';
+            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i].day.mintemp_c + '°c';
+        }
+        else {
+            cardTemp.textContent = Math.round(data.forecast.forecastday[i].day.avgtemp_f);
+            corf.textContent = '°f';
+            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i].day.maxtemp_f + '°f';
+            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i].day.mintemp_f + '°f';
+        }
+        cardTemp.appendChild(corf);
         cardHumidity.textContent = 'Humidity: ' + data.forecast.forecastday[i].day.avghumidity + '%';
-        const cardWind = createElementWithClass('p', 'card-text');
-        cardWind.textContent = 'Wind: ' + data.forecast.forecastday[i].day.maxwind_mph + ' mph';
+        cardWind.textContent = 'Wind: ' + data.forecast.forecastday[i].day.maxwind_kph + ' mph';
+        text.appendChild(cardText);
+        imgwithcondition.appendChild(img);
+        imgwithcondition.appendChild(text);
+        textandimg.appendChild(cardTemp);
+        textandimg.appendChild(imgwithcondition);
+        belowtitle.appendChild(textandimg);
         cardBody.appendChild(cardTitle);
-        cardBody.appendChild(cardText);
-        cardBody.appendChild(img);
-        cardBody.appendChild(cardTemp);
-        cardBody.appendChild(cardLow);
-        cardBody.appendChild(cardHumidity);
-
-        cardBody.appendChild(cardWind);
+        cardBody.appendChild(belowtitle);
+        belowtitle.appendChild(maxtemp);
+        belowtitle.appendChild(mintemp);
+        belowtitle.appendChild(cardHumidity);
+        belowtitle.appendChild(cardWind);
         card.appendChild(cardBody);
         cards.push(card);
     }
-
     return cards;
 }
-
-
 
 
 
@@ -187,7 +199,7 @@ getCurrentWeather().then(data => {
 getForecastWeather().then(data => {
     cardcontainer.innerHTML = '';
     for (let i = 1; i < 4; i++) {
-        cardcontainer.appendChild(createforecastcards(data)[i-1]);
+        cardcontainer.appendChild(createforecastcards(data)[i - 1]);
     }
 
 });

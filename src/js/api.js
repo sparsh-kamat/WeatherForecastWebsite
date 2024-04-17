@@ -1,6 +1,6 @@
 let apikey = "3e963439a3784995894134541241104";
 
-let baseURL = "http://api.weatherapi.com/v1";
+let baseURL = "https://api.weatherapi.com/v1";
 let currentWeather = "/current.json";
 let forecastWeather = "/forecast.json";
 let search = "/search.json";
