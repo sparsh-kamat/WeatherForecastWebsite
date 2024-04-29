@@ -1,5 +1,5 @@
 import '../scss/main.scss';
-import { getCurrentWeather, getForecastWeather, searchLocation } from './api.js';
+import { getCurrentWeather, getForecastWeather,  } from './api.js';
 import { createElementWithClass } from './domhelper.js';
 
 
@@ -122,7 +122,7 @@ function createCurrentCard(data) {
     return card;
 }
 
-
+// function to make a card in forecast to show 3 days details with time, tem , humidity etc
 function createforecastcards(data) {
     const cards = [];
     for (let i = 1; i < 4; i++) {
@@ -146,26 +146,24 @@ function createforecastcards(data) {
         const textandimg = createElementWithClass('div', 'textandimg');
         const text = createElementWithClass('div', 'text');
 
-
         cardTitle.textContent = days[(day + i) % 7];
-        cardText.textContent = data.forecast.forecastday[i].day.condition.text;
-        img.src = data.forecast.forecastday[i].day.condition.icon;
-        img.alt = data.forecast.forecastday[i].day.condition.text;
+        cardText.textContent = data.forecast.forecastday[i - 1].day.condition.text;
+        img.src = data.forecast.forecastday[i - 1].day.condition.icon;
+        img.alt = data.forecast.forecastday[i - 1].day.condition.text;
         if (tempunit === "c") {
-            cardTemp.textContent = Math.round(data.forecast.forecastday[i].day.avgtemp_c);
+            cardTemp.textContent = Math.round(data.forecast.forecastday[i - 1].day.avgtemp_c);
             corf.textContent = '°c';
-            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i].day.maxtemp_c + '°c';
-            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i].day.mintemp_c + '°c';
-        }
-        else {
-            cardTemp.textContent = Math.round(data.forecast.forecastday[i].day.avgtemp_f);
+            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i - 1].day.maxtemp_c + '°c';
+            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i - 1].day.mintemp_c + '°c';
+        } else {
+            cardTemp.textContent = Math.round(data.forecast.forecastday[i - 1].day.avgtemp_f);
             corf.textContent = '°f';
-            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i].day.maxtemp_f + '°f';
-            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i].day.mintemp_f + '°f';
+            maxtemp.textContent = 'Max Temp: ' + data.forecast.forecastday[i - 1].day.maxtemp_f + '°f';
+            mintemp.textContent = 'Min Temp: ' + data.forecast.forecastday[i - 1].day.mintemp_f + '°f';
         }
         cardTemp.appendChild(corf);
-        cardHumidity.textContent = 'Humidity: ' + data.forecast.forecastday[i].day.avghumidity + '%';
-        cardWind.textContent = 'Wind: ' + data.forecast.forecastday[i].day.maxwind_kph + ' mph';
+        cardHumidity.textContent = 'Humidity: ' + data.forecast.forecastday[i - 1].day.avghumidity + '%';
+        cardWind.textContent = 'Wind: ' + data.forecast.forecastday[i - 1].day.maxwind_kph + ' mph';
         text.appendChild(cardText);
         imgwithcondition.appendChild(img);
         imgwithcondition.appendChild(text);
@@ -184,16 +182,11 @@ function createforecastcards(data) {
     return cards;
 }
 
-
-
-// function to make a card in forecast to show 3 days details with time, tem , humidity etc
 //call the api to get the current weather
 getCurrentWeather().then(data => {
     current.appendChild(createCurrentCard(data));
     console.log(data);
 });
-
-
 
 //start with current location
 getForecastWeather().then(data => {
@@ -201,6 +194,11 @@ getForecastWeather().then(data => {
     for (let i = 1; i < 4; i++) {
         cardcontainer.appendChild(createforecastcards(data)[i - 1]);
     }
-
+    console.log(data);
 });
+
+
+
+
+
 
